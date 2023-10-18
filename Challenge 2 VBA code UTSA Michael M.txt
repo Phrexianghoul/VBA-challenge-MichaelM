@@ -1,0 +1,157 @@
+
+Sub tickerCounter()
+
+'Establish worksheets
+For Each ws In Worksheets
+
+Dim i As Long
+Dim counter As Integer
+Dim last_row
+last_row = Cells(Rows.Count, 1).End(xlUp).Row
+Dim column As Integer
+column = 1
+'Dim ws As Worksheet
+Dim ticker As String
+Dim stock_volume As Double
+Dim Summary_Table_Row As Integer
+Summary_Table_Row = 2
+Dim start As Long
+start = 2
+Dim percentchange As Double
+Dim change As Double
+Dim rCell As Range
+Dim rng As Range
+Dim dblMIN As Double
+Dim dblMAX As Double
+
+
+
+
+    'Define column headers
+    ws.Cells(1, 9).Value = "Ticker"
+    ws.Cells(1, 10).Value = "Yearly Change"
+    ws.Cells(1, 11).Value = "Percent Change"
+    ws.Cells(1, 12).Value = "Total Stock Volume"
+    ws.Cells(1, 16).Value = "Ticker"
+    ws.Cells(1, 17).Value = "Value"
+    ws.Cells(2, 15).Value = "Greatest % Increase"
+    ws.Cells(3, 15).Value = "Greatest % Decrease"
+    ws.Cells(4, 15).Value = "Greatest Total Volume"
+
+    'Define new columns
+    For i = 2 To last_row
+
+        If Cells(i + 1, 1).Value <> Cells(i, 1).Value Then
+    
+     'ticker = Cells(i, 1).Value
+    
+        stock_volume = stock_volume + Cells(i, 7).Value
+    
+            If stock_volume = 0 Then
+    
+        ws.Range("I" & Summary_Table_Row).Value = Cells(i, 1).Value
+    
+        ws.Range("J" & Summary_Table_Row).Value = 0
+    
+        ws.Range("K" & Summary_Table_Row).Value = "%" & 0
+    
+        ws.Range("L" & Summary_Table_Row).Value = 0
+    
+    Else
+
+        If Cells(start, 3) = 0 Then
+    
+            For Find_value = start To i
+        
+                If Cells(Find_value, 3).Value <> 0 Then
+            
+                start = Find_value
+            
+                Exit For
+            
+            End If
+        
+        Next Find_value
+    
+    End If
+
+        change = (Cells(i, 6) - Cells(start, 3))
+
+        percentchange = change / Cells(start, 3)
+
+        start = i + 1
+    
+            ws.Range("I" & Summary_Table_Row).Value = Cells(i, 1).Value
+
+            ws.Range("J" & Summary_Table_Row).Value = change
+    
+            ws.Range("J" & Summary_Table_Row).NumberFormat = "0.00"
+
+            ws.Range("K" & Summary_Table_Row).Value = percentchange
+    
+            ws.Range("K" & Summary_Table_Row).NumberFormat = "0.00%"
+                             
+            ws.Range("L" & Summary_Table_Row).Value = stock_volumn
+    
+        End If
+
+        Summary_Table_Row = Summary_Table_Row + 1
+
+        change = 0
+    
+        stock_volumn = 0
+
+    Else
+
+        stock_volumn = stock_volumn + Cells(i, 7).Value
+    
+    End If
+    
+Next i
+
+'Define column width
+    Const MinimalWidth As Double = 12.56
+    With Sheet1                    ' using the sheet's Code(Name)
+      Dim lastCol As Long
+     lastCol = ws.Cells(1, .Columns.Count).End(xlToLeft).column
+      'Dim rng As Range
+     Set rng = ws.Range(ws.Cells(1, 1), ws.Cells(1, lastCol))
+     'autofit columns
+     rng.EntireColumn.AutoFit
+     For i = 1 To rng.Columns.Count
+           If rng.Columns(i).ColumnWidth < MinimalWidth Then
+              rng.Columns(i).ColumnWidth = MinimalWidth
+         End If
+     Next i
+    End With
+    
+    'color format column k
+    With Sheet1
+            For Each rCell In ws.Range("J2:J" & last_row)
+                If rCell.Value < 0 Then
+                    rCell.Interior.Color = vbRed
+                ElseIf rCell.Value > 0 Then
+                    rCell.Interior.Color = vbGreen
+                End If
+            Next rCell
+        End With
+        
+        
+  'Set Min/MAX in summary table
+        ws.Range("Q2") = WorksheetFunction.Max(Range("K2:K" & last_row))
+        ws.Range("Q3") = WorksheetFunction.Min(Range("K2:K" & last_row))
+        ws.Range("Q4") = WorksheetFunction.Max(Range("L2:L" & last_row))
+        ws.Cells(2, 17).NumberFormat = "0.00%"
+        ws.Cells(3, 17).NumberFormat = "0.00%"
+        ws.Range("P2").Value = WorksheetFunction.Match(WorksheetFunction.Max(Range("K2:K" & last_row)), Range("K2:K" & last_row), 0)
+        ws.Range("P3").Value = WorksheetFunction.Match(WorksheetFunction.Min(Range("K2:K" & last_row)), Range("K2:K" & last_row), 0)
+        ws.Range("P4").Value = WorksheetFunction.Match(WorksheetFunction.Max(Range("L2:L" & last_row)), Range("L2:L" & last_row), 0)
+        
+        
+        
+Next ws
+
+
+
+End Sub
+
